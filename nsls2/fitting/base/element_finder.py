@@ -59,21 +59,33 @@ def element_finder(incident_energy, fluor_energy, diff,
         -------
         dict
             elements and possible lines
+
+        Raises
+        ------
+        ValueError
+            raised if incident_energy, fluor_energy or diff cannot be cast
+            to a float
         """
 
+        incident_energy = float(incident_energy)
+        fluor_energy = float(fluor_energy)
+        diff = float(diff)
+
         result = {}
+        # this test returns True is elem_list == None or if elem_list == []
         if not elem_list:
-            for i in np.arange(100):
+            # loop over the first hundred elements
+            for i in range(100):
                 e = Element(i+1, incident_energy)
-                if find_line(e, fluor_energy, diff) is None:
-                    continue
-                result.update(find_line(e, fluor_energy, diff))
+                line = find_line(e, fluor_energy, diff)
+                if line is not None:
+                    result.update(line)
         else:
             for item in elem_list:
                 e = Element(item, incident_energy)
-                if find_line(e, fluor_energy, diff) is None:
-                    continue
-                result.update(find_line(e, fluor_energy, diff))
+                line = find_line(e, fluor_energy, diff)
+                if line is not None:
+                    result.update(line)
 
         return result
 
