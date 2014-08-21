@@ -59,18 +59,18 @@ def element_finder(incident_energy, fluor_energy, diff,
     -------
     dict
         elements and possible lines
+        
+    Raises
+    ------
+    ValueError
+        raised if incident_energy, fluor_energy or diff cannot be cast
+        to a float
 
     Examples
     --------
     >>> out = element_finder(10, 8, 0.5)
     >>> print (out)
     {'Eu': {'Lg4': 8.029999732971191}, 'Cu': {'Ka2': 8.027899742126465, 'Ka1': 8.047800064086914}}
-
-    Raises
-    ------
-    ValueError
-        raised if incident_energy, fluor_energy or diff cannot be cast
-        to a float
     """
 
     incident_energy = float(incident_energy)
