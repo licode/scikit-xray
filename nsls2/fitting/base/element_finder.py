@@ -40,54 +40,60 @@ from nsls2.fitting.base.element import Element
 
 def element_finder(incident_energy, fluor_energy, diff,
                    elem_list=None):
-        """
-        Find emission lines close to a given energy
+    """
+    Find emission lines close to a given energy
 
-        Parameters
-        ----------
-        incident_e : float
-            incident energy in KeV
-        fluor_energy : float
-            energy value to search for
-        diff : float
-            difference compared to energy
-        elem_list : list
-            List of elements to search for. Element abbreviations can be
-            any mix of upper and lower case, e.g., Hg, hG, hg, HG
+    Parameters
+    ----------
+    incident_energy : float
+        incident energy in KeV
+    fluor_energy : float
+        energy value to search for
+    diff : float
+        difference compared to energy
+    elem_list : list
+        List of elements to search for. Element abbreviations can be
+        any mix of upper and lower case, e.g., Hg, hG, hg, HG
 
-        Returns
-        -------
-        dict
-            elements and possible lines
+    Returns
+    -------
+    dict
+        elements and possible lines
 
-        Raises
-        ------
-        ValueError
-            raised if incident_energy, fluor_energy or diff cannot be cast
-            to a float
-        """
+    Examples
+    --------
+    >>> out = element_finder(10, 8, 0.5)
+    >>> print (out)
+    {'Eu': {'Lg4': 8.029999732971191}, 'Cu': {'Ka2': 8.027899742126465, 'Ka1': 8.047800064086914}}
 
-        incident_energy = float(incident_energy)
-        fluor_energy = float(fluor_energy)
-        diff = float(diff)
+    Raises
+    ------
+    ValueError
+        raised if incident_energy, fluor_energy or diff cannot be cast
+        to a float
+    """
 
-        result = {}
-        # this test returns True is elem_list == None or if elem_list == []
-        if not elem_list:
-            # loop over the first hundred elements
-            for i in range(100):
-                e = Element(i+1, incident_energy)
-                line = find_line(e, fluor_energy, diff)
-                if line is not None:
-                    result.update(line)
-        else:
-            for item in elem_list:
-                e = Element(item, incident_energy)
-                line = find_line(e, fluor_energy, diff)
-                if line is not None:
-                    result.update(line)
+    incident_energy = float(incident_energy)
+    fluor_energy = float(fluor_energy)
+    diff = float(diff)
 
-        return result
+    result = {}
+    # this test returns True is elem_list == None or if elem_list == []
+    if not elem_list:
+        # loop over the first hundred elements
+        for i in range(100):
+            e = Element(i+1, incident_energy)
+            line = find_line(e, fluor_energy, diff)
+            if line is not None:
+                result.update(line)
+    else:
+        for item in elem_list:
+            e = Element(item, incident_energy)
+            line = find_line(e, fluor_energy, diff)
+            if line is not None:
+                result.update(line)
+
+    return result
 
 
 def find_line(element, energy, diff):
