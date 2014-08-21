@@ -38,94 +38,44 @@ import numpy as np
 from nsls2.fitting.base.element import Element
 
 
-
-class ElementFinder(object):
-    """
-    Find emission lines close to a given energy
-
-    Attributes
-    ----------
-    incident_e : float
-        incident energy in KeV
-
-    Methods
-    -------
-    find(self, energy, diff)
-        return the possible lines close
-        to a given energy value
-
-    Examples
-    --------
-    >>> ef = ElementFinder(10)
-    >>> out = ef.find(8, 0.5)
-    >>> print (out)
-    {'Eu': {'Lg4': 8.029999732971191}, 'Cu': {'Ka2': 8.027899742126465, 'Ka1': 8.047800064086914}}
-    """
-
-    def __init__(self, incident_e, **kwargs):
+def element_finder(incident_energy, fluor_energy, diff,
+                   elem_list=None):
         """
+        Find emission lines close to a given energy
+
         Parameters
         ----------
         incident_e : float
             incident energy in KeV
-        kwargs : dict, option
-            define element name,
-            name1='Fe', name2='Cu'
-            if not defined, search all elements
-        """
-        self._incident_e = incident_e
-
-        if len(kwargs) == 0:
-            self._search = 'all'
-        else:
-            self._search = kwargs.values()
-
-    @property
-    def incident_e(self):
-        return self._incident_e
-
-    @incident_e.setter
-    def incident_e(self, val):
-        """
-        Parameters
-        ----------
-        val : float
-            new incident energy value in KeV
-        """
-        self._incident_e = float(val)
-
-
-    def find(self, energy, diff):
-        """
-        Parameters
-        ----------
-        energy : float
+        fluor_energy : float
             energy value to search for
         diff : float
             difference compared to energy
+        elem_list : list
+            List of elements to search for. Element abbreviations can be
+            any mix of upper and lower case, e.g., Hg, hG, hg, HG
 
         Returns
         -------
-        result : dict
+        dict
             elements and possible lines
         """
 
         result = {}
-        if self._search == 'all':
+        if not elem_list:
             for i in np.arange(100):
-                e = Element(i+1, self._incident_e)
-                if find_line(e, energy, diff) is None:
+                e = Element(i+1, incident_energy)
+                if find_line(e, fluor_energy, diff) is None:
                     continue
-                result.update(find_line(e, energy, diff))
+                result.update(find_line(e, fluor_energy, diff))
         else:
-            for item in self._search:
-                e = Element(item, self._incident_e)
-                if find_line(e, energy, diff) is None:
+            for item in elem_list:
+                e = Element(item, incident_energy)
+                if find_line(e, fluor_energy, diff) is None:
                     continue
-                result.update(find_line(e, energy, diff))
+                result.update(find_line(e, fluor_energy, diff))
 
         return result
-
 
 
 def find_line(element, energy, diff):
@@ -146,11 +96,12 @@ def find_line(element, energy, diff):
     dict or None
         elements with associated lines
     """
-    mydict = {k : v for k, v in six.iteritems(element.emission_line) if abs(v - energy) < diff}
+    mydict = {k: v for k, v in six.iteritems(element.emission_line)
+              if abs(v - energy) < diff}
     if len(mydict) == 0:
         return
     else:
-        newdict = {k : v for k, v in six.iteritems(mydict) if element.cs[k] > 0}
+        newdict = {k: v for k, v in six.iteritems(mydict) if element.cs[k] > 0}
         if len(newdict) == 0:
             return
         else:
