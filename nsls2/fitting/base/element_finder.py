@@ -38,94 +38,62 @@ import numpy as np
 from nsls2.fitting.base.element import Element
 
 
-
-class ElementFinder(object):
+def element_finder(incident_energy, fluor_energy, diff,
+                   elem_list=None):
     """
     Find emission lines close to a given energy
 
-    Attributes
+    Parameters
     ----------
-    incident_e : float
+    incident_energy : float
         incident energy in KeV
+    fluor_energy : float
+        energy value to search for
+    diff : float
+        difference compared to energy
+    elem_list : list
+        List of elements to search for. Element abbreviations can be
+        any mix of upper and lower case, e.g., Hg, hG, hg, HG
 
-    Methods
+    Returns
     -------
-    find(self, energy, diff)
-        return the possible lines close
-        to a given energy value
+    dict
+        elements and possible lines
+        
+    Raises
+    ------
+    ValueError
+        raised if incident_energy, fluor_energy or diff cannot be cast
+        to a float
 
     Examples
     --------
-    >>> ef = ElementFinder(10)
-    >>> out = ef.find(8, 0.5)
+    >>> out = element_finder(10, 8, 0.5)
     >>> print (out)
     {'Eu': {'Lg4': 8.029999732971191}, 'Cu': {'Ka2': 8.027899742126465, 'Ka1': 8.047800064086914}}
     """
 
-    def __init__(self, incident_e, **kwargs):
-        """
-        Parameters
-        ----------
-        incident_e : float
-            incident energy in KeV
-        kwargs : dict, option
-            define element name,
-            name1='Fe', name2='Cu'
-            if not defined, search all elements
-        """
-        self._incident_e = incident_e
+    incident_energy = float(incident_energy)
+    fluor_energy = float(fluor_energy)
+    diff = float(diff)
 
-        if len(kwargs) == 0:
-            self._search = 'all'
-        else:
-            self._search = kwargs.values()
+    result = {}
+    # this test returns True is elem_list == None or if elem_list == []
+    if not elem_list:
+        # loop over the first hundred elements
+        for i in range(100):
+            e = Element(i+1, incident_energy)
+            line = find_line(e, fluor_energy, diff)
+            if line is not None:
+                result.update(line)
+    else:
+        for item in elem_list:
+            e = Element(item, incident_energy)
+            line = find_line(e, fluor_energy, diff)
+            if line is not None:
+                result.update(line)
 
-    @property
-    def incident_e(self):
-        return self._incident_e
-
-    @incident_e.setter
-    def incident_e(self, val):
-        """
-        Parameters
-        ----------
-        val : float
-            new incident energy value in KeV
-        """
-        self._incident_e = float(val)
-
-
-    def find(self, energy, diff):
-        """
-        Parameters
-        ----------
-        energy : float
-            energy value to search for
-        diff : float
-            difference compared to energy
-
-        Returns
-        -------
-        result : dict
-            elements and possible lines
-        """
-
-        result = {}
-        if self._search == 'all':
-            for i in np.arange(100):
-                e = Element(i+1, self._incident_e)
-                if find_line(e, energy, diff) is None:
-                    continue
-                result.update(find_line(e, energy, diff))
-        else:
-            for item in self._search:
-                e = Element(item, self._incident_e)
-                if find_line(e, energy, diff) is None:
-                    continue
-                result.update(find_line(e, energy, diff))
-
-        return result
-
+    return result
 
 
 def find_line(element, energy, diff):
@@ -146,11 +114,12 @@ def find_line(element, energy, diff):
     dict or None
         elements with associated lines
     """
-    mydict = {k : v for k, v in six.iteritems(element.emission_line) if abs(v - energy) < diff}
+    mydict = {k: v for k, v in six.iteritems(element.emission_line)
+              if abs(v - energy) < diff}
     if len(mydict) == 0:
         return
     else:
-        newdict = {k : v for k, v in six.iteritems(mydict) if element.cs[k] > 0}
+        newdict = {k: v for k, v in six.iteritems(mydict) if element.cs[k] > 0}
         if len(newdict) == 0:
             return
         else:
